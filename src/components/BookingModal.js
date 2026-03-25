@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import emailjs from 'emailjs-com'; // ✅ ADD THIS
+import emailjs from 'emailjs-com';
 import './Booking.css';
 
 const BookingModal = ({ flight, user, travelDate, onClose }) => {
@@ -12,27 +12,33 @@ const BookingModal = ({ flight, user, travelDate, onClose }) => {
         email: user ? user.email : ''
     });
 
-    // ✅ EMAIL FUNCTION
-    const sendEmail = () => {
-        const templateParams = {
-            passenger_name: passenger.name,
-            user_email: passenger.email,
-            airline: flight.airline,
-            flight_number: flight.flightNumber,
-            source: flight.source,
-            destination: flight.destination,
-            date: travelDate,
-            price: flight.price
-        };
+    // ✅ EMAIL FUNCTION (UPDATED)
+    const sendEmail = async () => {
+        try {
+            const templateParams = {
+                passenger_name: passenger.name,
+                user_email: passenger.email,
+                airline: flight.airline,
+                flight_number: flight.flightNumber,
+                source: flight.source,
+                destination: flight.destination,
+                departure_time: flight.departureTime, // 🔥 FIXED
+                date: travelDate,
+                price: flight.price
+            };
 
-        emailjs.send(
-            'service_v2crfql',        // ✅ tera service ID
-            'YOUR_TEMPLATE_ID',      // 🔴 yaha apna Template ID daal
-            templateParams,
-            'YOUR_PUBLIC_KEY'        // 🔴 yaha Public Key daal
-        )
-        .then(() => console.log("✅ Email sent"))
-        .catch((err) => console.log("❌ Email error:", err));
+            await emailjs.send(
+                'service_v2crfql',          // ✅ tera service ID
+                'template_template_qfrdf9h',        // 🔴 apna template ID daal
+                templateParams,
+                'vm-baO3an7j1zWPIp'          // 🔴 apna public key daal
+            );
+
+            console.log("✅ Email sent successfully");
+
+        } catch (err) {
+            console.log("❌ Email failed:", err);
+        }
     };
 
     const handleConfirm = async () => {
@@ -63,8 +69,8 @@ const BookingModal = ({ flight, user, travelDate, onClose }) => {
 
             console.log("Booking Success:", response.data);
 
-            // ✅ EMAIL CALL
-            sendEmail();
+            // ✅ EMAIL CALL (after booking success)
+            await sendEmail();
 
             setIsSuccess(true);
 
@@ -98,8 +104,9 @@ const BookingModal = ({ flight, user, travelDate, onClose }) => {
             <div className="modal-content">
                 <span className="close-btn" onClick={onClose}>&times;</span>
                 <h2>Passenger Details</h2>
+
                 <p>
-                    <strong>Flight:</strong> {flight.airline} |{' '}
+                    <strong>Flight:</strong> {flight.airline} |{" "}
                     <strong>Date:</strong> {travelDate || "Not Selected"}
                 </p>
 
